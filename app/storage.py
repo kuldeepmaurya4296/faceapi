@@ -282,7 +282,7 @@ class Storage:
                 """
                 SELECT endpoint, COUNT(*) AS requests, SUM(faces) AS faces,
                        AVG(latency_ms) AS avg_latency_ms,
-                       SUM(CASE WHEN status_code >= 400 THEN 1 ELSE 0 END) AS errors
+                       COALESCE(SUM(CASE WHEN status_code >= 400 THEN 1 ELSE 0 END), 0) AS errors
                 FROM usage_events
                 WHERE key_id = ? AND month = ?
                 GROUP BY endpoint ORDER BY requests DESC
@@ -304,7 +304,7 @@ class Storage:
         totals = self._query_one(
             """
             SELECT COUNT(*) AS requests, COALESCE(SUM(faces),0) AS faces,
-                   SUM(CASE WHEN status_code >= 400 THEN 1 ELSE 0 END) AS errors
+                   COALESCE(SUM(CASE WHEN status_code >= 400 THEN 1 ELSE 0 END), 0) AS errors
             FROM usage_events WHERE key_id = ? AND month = ?
             """,
             (key_id, month),
@@ -312,9 +312,9 @@ class Storage:
         return {
             "key_id": key_id,
             "month": month,
-            "requests": int(totals["requests"]) if totals else 0,
-            "faces": int(totals["faces"]) if totals else 0,
-            "errors": int(totals["errors"]) if totals else 0,
+            "requests": int(totals["requests"] or 0) if totals else 0,
+            "faces": int(totals["faces"] or 0) if totals else 0,
+            "errors": int(totals["errors"] or 0) if totals else 0,
             "by_endpoint": by_endpoint,
             "by_day": by_day,
         }
@@ -345,9 +345,9 @@ class Storage:
         )
         return {
             "window_days": days,
-            "requests": int(totals["requests"]) if totals else 0,
-            "faces": int(totals["faces"]) if totals else 0,
-            "active_keys_in_window": int(totals["active_keys"]) if totals else 0,
+            "requests": int(totals["requests"] or 0) if totals else 0,
+            "faces": int(totals["faces"] or 0) if totals else 0,
+            "active_keys_in_window": int(totals["active_keys"] or 0) if totals else 0,
             "keys_total": int(keys["total"]) if keys else 0,
             "keys_active": int(keys["active"] or 0) if keys else 0,
             "by_day": by_day,

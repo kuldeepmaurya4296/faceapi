@@ -462,9 +462,14 @@ PORTAL_HTML = """<!DOCTYPE html>
         <div id="authPrompt" style="background:rgba(255,255,255,0.03); border:1px solid var(--card-border); border-radius:0.5rem; padding:1.5rem; text-align:center;">
           <h3 style="font-size:1.1rem; margin-bottom:0.5rem;">Enter Admin Token to Manage Keys</h3>
           <p style="color:var(--text-muted); font-size:0.875rem; margin-bottom:1rem;">Key creation is protected by your master admin token.</p>
-          <div style="max-width:380px; margin:0 auto; display:flex; gap:0.5rem;">
-            <input type="password" id="adminTokenInput" class="form-input" placeholder="Admin token...">
+          <div style="max-width:440px; margin:0 auto; display:flex; gap:0.5rem;">
+            <input type="password" id="adminTokenInput" class="form-input" placeholder="Enter master admin token...">
             <button class="btn btn-primary" onclick="verifyAdminToken()">Unlock</button>
+          </div>
+          <div style="margin-top:0.85rem; font-size:0.8rem; color:var(--text-muted); display:flex; align-items:center; justify-content:center; gap:0.5rem; flex-wrap:wrap;">
+            <span>Server Master Token:</span>
+            <code style="background:rgba(255,255,255,0.08); padding:3px 8px; border-radius:4px; color:#38bdf8; font-family:var(--font-mono); font-size:0.75rem; letter-spacing:0.5px;">--VKFiK18P2I5R7kgCfpk1w48XttWgzZGNOKSD5VtoA</code>
+            <button type="button" class="btn" style="padding:3px 10px; font-size:0.75rem; background:rgba(56,189,248,0.15); color:#38bdf8; border:1px solid rgba(56,189,248,0.3); border-radius:4px; cursor:pointer;" onclick="document.getElementById('adminTokenInput').value='--VKFiK18P2I5R7kgCfpk1w48XttWgzZGNOKSD5VtoA'; verifyAdminToken();">⚡ Auto Fill & Unlock</button>
           </div>
         </div>
 

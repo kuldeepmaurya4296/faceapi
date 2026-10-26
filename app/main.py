@@ -99,6 +99,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "128-d embedding so you can verify (1:1) or identify (1:N) people.\n\n"
             "Authenticate with the `X-API-Key` header. `/admin/*` endpoints use `X-Admin-Token`."
         ),
+        root_path="/faceapi",
         docs_url="/docs" if docs_enabled else None,
         redoc_url="/redoc" if docs_enabled else None,
         openapi_url="/openapi.json" if docs_enabled else None,
@@ -126,6 +127,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         )
 
     install_error_handlers(app)
+
+    @app.middleware("http")
+    async def handle_forwarded_prefix(request: Request, call_next):
+        prefix = request.headers.get("x-forwarded-prefix")
+        if prefix:
+            request.scope["root_path"] = prefix.rstrip("/")
+        return await call_next(request)
 
     @app.middleware("http")
     async def accounting(request: Request, call_next):
