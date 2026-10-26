@@ -1,0 +1,65 @@
+# Face API — one-command deployable stack.
+#
+#   cp .env.example .env && edit FACEAPI_ADMIN_TOKEN
+#   docker compose up -d --build
+#
+# Everything (keys, usage, face embeddings) lives in the `faceapi-data` volume,
+# so `docker compose down` is safe and backups are a volume copy.
+
+services:
+  api:
+    build:
+      context: .
+      args:
+        DOWNLOAD_MODELS: "true"
+    image: faceapi:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      # Keep more workers than cores is pointless for CPU inference; scale with
+      # replicas instead.
+      WORKERS: "${WORKERS:-2}"
+      PORT: "8000"
+    ports:
+      - "${HOST_PORT:-8000}:8000"
+    volumes:
+      - faceapi-data:/app/data
+      # Uncomment to keep models outside the image (smaller image, faster rebuilds):
+      # - ./models:/app/models:ro
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 1500M
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=4).status==200 else 1)"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  # Optional HTTPS reverse proxy: `docker compose --profile tls up -d`
+  # Point your domain's A record at this host first, then edit deploy/Caddyfile.
+  caddy:
+    image: caddy:2-alpine
+    profiles: ["tls"]
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  faceapi-data:
+  caddy-data:
+  caddy-config:

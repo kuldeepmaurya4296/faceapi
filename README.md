@@ -241,4 +241,3 @@ a paperwork problem. Concretely:
 Liveness/anti-spoofing, face-quality scoring, quality-gated enrolment,
 `sqlite-vec`/FAISS for galleries beyond ~50k faces, Redis-backed global rate
 limiting, webhooks on quota thresholds, Stripe metered billing.
-# faceapi

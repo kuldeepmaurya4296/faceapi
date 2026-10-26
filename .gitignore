@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local state
+.smoke/
+*.db
+*.db-wal
+*.db-shm
+admin_token.txt
+.env
+!data/faceapi.db
+!data/admin_token.txt
+
+# Downloaded ONNX weights (~38 MB); fetch with `python scripts/download_models.py`
+models/*.onnx
+models/*.part
+
+# Scratch
+*.log
+.DS_Store
+tests/assets/generated_*

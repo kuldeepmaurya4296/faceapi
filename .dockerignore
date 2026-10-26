@@ -1,0 +1,30 @@
+# Keep the build context tiny.
+.git
+.gitignore
+.venv
+venv
+__pycache__
+**/__pycache__
+*.py[cod]
+.pytest_cache
+.mypy_cache
+.ruff_cache
+
+# Local secrets and state
+.env
+data
+.smoke
+*.db
+*.db-wal
+*.db-shm
+admin_token.txt
+
+# Docs and tests are not needed inside the runtime image
+docs
+tests
+*.md
+!requirements.txt
+
+# Weights are baked in by scripts/download_models.py during the build
+models/*.onnx
+models/*.part

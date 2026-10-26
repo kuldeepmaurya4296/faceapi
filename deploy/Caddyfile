@@ -1,0 +1,50 @@
+# Automatic HTTPS for your Face API.
+#
+# 1. Replace api.example.com with your domain.
+# 2. Replace you@example.com with your email (Let's Encrypt expiry notices).
+# 3. Make sure the domain's A/AAAA record already points at this server.
+# 4. docker compose --profile tls up -d
+
+{
+	email you@example.com
+}
+
+api.example.com {
+	encode zstd gzip
+
+	# Uploads can be up to FACEAPI_MAX_UPLOAD_MB (default 10 MB); give headroom.
+	request_body {
+		max_size 50MB
+	}
+
+	# Optional edge rate limit (defence in depth — the app also limits per key).
+	# rate_limit {
+	# 	zone api_zone {
+	# 		match {
+	# 			path /v1/*
+	# 		}
+	# 		key {http.request.header.X-API-Key} {remote_host}
+	# 		rate 120r/m
+	# 	}
+	# }
+
+	reverse_proxy api:8000 {
+		header_up X-Real-IP {remote_host}
+		transport http {
+			read_timeout 120s
+		}
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		-Server
+	}
+
+	log {
+		output file /data/access.log {
+			roll_size 20mb
+			roll_keep 5
+		}
+	}
+}

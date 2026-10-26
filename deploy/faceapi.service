@@ -1,0 +1,44 @@
+[Unit]
+Description=Face API (detection + recognition REST service)
+Documentation=https://github.com/your-org/faceapi
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=exec
+User=faceapi
+Group=faceapi
+WorkingDirectory=/opt/faceapi
+
+# Secrets live in /etc/faceapi/faceapi.env (chmod 600, owned by root).
+#   FACEAPI_AUTH_ENABLED=true
+#   FACEAPI_ADMIN_TOKEN=...
+#   FACEAPI_DATA_DIR=/var/lib/faceapi
+EnvironmentFile=/etc/faceapi/faceapi.env
+
+ExecStart=/opt/faceapi/.venv/bin/uvicorn app.main:app \
+    --host 127.0.0.1 --port 8000 \
+    --workers 2 \
+    --proxy-headers --forwarded-allow-ips='127.0.0.1'
+
+Restart=always
+RestartSec=3
+TimeoutStopSec=20
+KillSignal=SIGINT
+
+# Hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/faceapi
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+LockPersonality=true
+MemoryDenyWriteExecute=false
+LimitNOFILE=8192
+
+[Install]
+WantedBy=multi-user.target
