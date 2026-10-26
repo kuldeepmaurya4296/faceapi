@@ -93,33 +93,35 @@ def authenticate(request: Request) -> CallContext:
 
     request_id = getattr(request.state, "request_id", None)
 
-    if not settings.auth_enabled:
+    secret = extract_api_key(request)
+    if secret:
+        key = parse_api_key(settings, storage, secret)
+        month_usage = enforce_quota(key, storage)
+        remaining, headers = enforce_rate_limit(limiter, key)
+        request.state.key_context = key
+        return CallContext(
+            key=key,
+            settings=settings,
+            storage=storage,
+            rate_headers=headers,
+            month_usage=month_usage,
+            rate_remaining=remaining,
+            request_id=request_id,
+        )
+
+    # Check if request is explicitly internal (e.g. direct call with X-Internal header from HRMS) or auth disabled
+    is_internal = request.headers.get("x-internal") == "true"
+    if is_internal or not settings.auth_enabled:
         key = personal_context(settings)
         request.state.key_context = key
         return CallContext(
             key=key, settings=settings, storage=storage, month_usage=0, request_id=request_id
         )
 
-    secret = extract_api_key(request)
-    if not secret:
-        raise AuthError(
-            "Missing API key. Send it in the 'X-API-Key' header "
-            "(or 'Authorization: Bearer <key>').",
-            code="missing_api_key",
-        )
-
-    key = parse_api_key(settings, storage, secret)
-    month_usage = enforce_quota(key, storage)
-    remaining, headers = enforce_rate_limit(limiter, key)
-    request.state.key_context = key
-    return CallContext(
-        key=key,
-        settings=settings,
-        storage=storage,
-        rate_headers=headers,
-        month_usage=month_usage,
-        rate_remaining=remaining,
-        request_id=request_id,
+    raise AuthError(
+        "Missing API key. Send your API key in the 'X-API-Key' header "
+        "(or 'Authorization: Bearer <key>'). Generate your key at https://hrms.fakhriitservices.com/faceapi",
+        code="missing_api_key",
     )
 
 

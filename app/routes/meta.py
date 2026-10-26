@@ -3,16 +3,26 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Request, Response
+from fastapi.responses import HTMLResponse
 
 from .. import __version__
 from ..config import PLANS
+from ..portal import render_portal
 from ..schemas import PlanInfo, ServiceInfo
 
 router = APIRouter(tags=["meta"])
 
 
-@router.get("/", response_model=ServiceInfo, summary="Service discovery / landing payload")
-def service_info(request: Request) -> ServiceInfo:
+@router.get("/portal", response_class=HTMLResponse, summary="Interactive Developer Portal & Documentation")
+def developer_portal():
+    return render_portal()
+
+
+@router.get("/", summary="Service discovery or Developer Portal")
+def service_info(request: Request):
+    accept = request.headers.get("accept", "")
+    if "text/html" in accept:
+        return render_portal()
     settings = request.app.state.settings
     engine = request.app.state.engine
     docs_url = "/docs" if settings.docs_enabled else None
