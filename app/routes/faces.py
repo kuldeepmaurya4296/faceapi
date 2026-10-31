@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from ..antispoof import check_liveness
-
 import time
 
 from fastapi import APIRouter, Depends, Query, Request, Response
