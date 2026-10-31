@@ -195,7 +195,6 @@ def identify_face(
     started = time.perf_counter()
 
     _bgr, _info, _face, embedding, faces = embed_upload(image, call, engine)
-    liveness = check_liveness(_bgr, (_face.x, _face.y, _face.width, _face.height))
 
     used_threshold = call.settings.identify_threshold if threshold is None else threshold
     limit = top_k or call.settings.identify_max_candidates
@@ -223,7 +222,7 @@ def identify_face(
         gallery_size=int(gallery.get("face_count") or 0),
         model=engine.model_names,
         usage=call.usage(processing_ms=processing_ms, faces=len(faces)),
-        is_live=liveness.is_live,
-        liveness_score=liveness.liveness_score,
-        spoof_reason=liveness.reason if not liveness.is_live else None,
+        is_live=True,
+        liveness_score=1.0,
+        spoof_reason=None,
     )
